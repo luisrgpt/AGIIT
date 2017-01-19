@@ -26,7 +26,11 @@
     # Giving permissions in sudoers for system critical files
     - name: Validate the sudoers file before saving  not to require password
       lineinfile: "dest=/etc/sudoers state=present regexp='^%ADMIN ALL=' line='%ADMIN ALL=(ALL) NOPASSWD: ALL' validate='visudo -cf %s'"
-  
+
+
+- hosts: db
+  roles:
+    - mysql 
 
 # This Second Play install the required software in web servers
 # tasks names are self explanatory

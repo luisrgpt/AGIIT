@@ -153,6 +153,20 @@
   # - debug:
   #     var: web2   
 
+  - os_server:
+      state: present
+      name: db1
+      image: Ubuntu Xenial server (16.04)
+      key_name: ansible-key
+      timeout: 200
+      flavor: m1.tiny
+      security_groups: "default"
+      network: backend_network
+      auto_ip: no
+    register: db1
+  # - debug:
+  #     var: db1   
+  
   #  Add bastionbal Ubuntu Instance to Inventory
   - add_host: 
       name: "{{ bastionbal.server.public_v4 }}"
@@ -177,6 +191,14 @@
       groups: web
       instance_name: web2
       ansible_host: "{{ web2.server.private_v4 }}"
+      ansible_user: ubuntu
+      ansible_become: true
+
+  - add_host: 
+      name: "{{ db1.server.private_v4 }}"
+      groups: db
+      instance_name: db1
+      ansible_host: "{{ db1.server.private_v4 }}"
       ansible_user: ubuntu
       ansible_become: true
 
