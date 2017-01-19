@@ -1,0 +1,60 @@
+---
+# file: agicloud-site-net-instances-02.yml
+# creates a demo tenant infrastructure (networks, host instances)
+# This is a single Play named "Create Tenant Infrastructure"
+# Please note that in tasks there were included "debug" options
+# to report the results of the tasks
+#
+# This is the second step - create a router
+# You can modigy the router subnets to suite your needs...
+
+- name: Create Tenant Infrastructure
+  hosts: localhost
+
+  tasks:
+  # creating the frontend network (dmz)  
+  - os_network:
+      name: frontend_network
+    register: net_frontend
+
+  # defines the subnet (addressing) for the frontend network including DNS 
+  - os_subnet:
+      state: present
+      network_name: frontend_network
+      name: frontend_subnet
+      cidr: 192.168.0.0/24
+      enable_dhcp: True
+      dns_nameservers:
+        - 8.8.8.8
+        - 8.8.4.4
+    register: subnet_frontend
+
+  # creating the backend network (for web servers)  
+  - os_network:
+      name: backend_network
+    register: net_backend
+
+  # defines the subnet (addressing) for the backend network including DNS 
+  - os_subnet:
+      state: present
+      network_name: backend_network
+      name: backend_subnet
+      cidr: 192.168.1.0/24
+      enable_dhcp: True
+      dns_nameservers:
+        - 8.8.8.8
+        - 8.8.4.4
+    register: subnet_backend   
+
+  #  creating a router connecting the frontend to the external (public) network
+  - os_router:
+      state: present
+      name: vrdmz
+      network: external
+      interfaces:
+        - frontend_subnet
+        - backend_subnet
+    register: vr_ext
+  - debug:
+      var: vr_ext
+

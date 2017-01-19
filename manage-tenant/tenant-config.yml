@@ -1,0 +1,9 @@
+---
+# file: tenant-config.yml
+# configures the server instances
+
+- hosts: web
+
+  roles:
+  
+  - servers

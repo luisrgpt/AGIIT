@@ -1,0 +1,37 @@
+# file: myhosts
+# for tenant hosts file
+# Modify the line with the ansible_host for the public IP address of your Tenant
+# Also change the server name for your Tenant number
+# Naming convention is jplbal[a,e][01-14], a is AGIIT, e is ESer
+# un-comment the following line before running instances configuration
+
+# jplbalat0X ansible_host=193.136.164.XXX ansible_user=ubuntu
+
+# the local deployment host VM
+[osmgmt]
+localhost           ansible_connection=local
+
+# contains the instance connected to frontend for management and load balancer
+# Change the server name for your Tenant number
+# Naming convention is jplbal[a,e][01-14], "a" is AGIIT, "e" is ESer
+[frontservers]
+jplbalat0X
+
+
+# web servers at backend (add all that are required)
+# this is just an example. Your naming may be different
+[otherservers]
+server1
+server2
+
+# you can add other servers in other groups
+
+# modify the lines for the internal IP addresses of the gatewayed server instances
+# as for the following example
+[gatewayed]
+server1 ansible_host=AAA.BBB.CCC.DDD
+server2 ansible_host=AAA.BBB.CCC.DDD
+
+# Defines the command to append for tunnelling through the bastion host
+[gatewayed:vars]
+ansible_ssh_common_args=' -o ProxyCommand="ssh -W %h:%p -q ubuntu@jplbalat0X"'

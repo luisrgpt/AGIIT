@@ -1,0 +1,11 @@
+---
+# file: tenant-infra.yml
+# creates a tenant infrastructure (networks, host instances)
+
+
+- name: Create Tenant Infrastructure
+  hosts: localhost
+
+  roles:
+  
+  - common

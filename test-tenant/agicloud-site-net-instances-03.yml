@@ -1,0 +1,104 @@
+---
+# file: agicloud-site-net-instances-03.yml
+# creates a demo tenant infrastructure (networks, host instances)
+# This is a single Play named "Create Tenant Infrastructure"
+# Please note that in tasks there were included "debug" options
+# to report the results of the tasks
+#
+# This is the Third step - create security aspects
+# You will need a SSH key Pair for passwordless login in cloud instances
+# and some security group Rules to allow communication with the systems 
+
+
+- name: Create Tenant Infrastructure
+  hosts: localhost
+
+  tasks:
+  # creating the frontend network (dmz)  
+  - os_network:
+      name: frontend_network
+    register: net_frontend
+  # defines the subnet (addressing) for the frontend network including DNS 
+  - os_subnet:
+      state: present
+      network_name: frontend_network
+      name: frontend_subnet
+      cidr: 192.168.0.0/24
+      enable_dhcp: True
+      dns_nameservers:
+        - 8.8.8.8
+        - 8.8.4.4
+    register: subnet_frontend
+
+  # creating the backend network (for web servers)  
+  - os_network:
+      name: backend_network
+    register: net_backend
+
+  # defines the subnet (addressing) for the backend network including DNS 
+  - os_subnet:
+      state: present
+      network_name: backend_network
+      name: backend_subnet
+      cidr: 192.168.1.0/24
+      enable_dhcp: True
+      dns_nameservers:
+        - 8.8.8.8
+        - 8.8.4.4
+    register: subnet_backend  
+
+  #  creating a router connecting the frontend to the external (public) network
+  - os_router:
+      state: present
+      name: vrdmz
+      network: external
+      interfaces:
+        - frontend_subnet
+        - backend_subnet
+    register: vr_ex
+
+  # creating a key pair for passwordless remote ssh
+  - os_keypair:
+      state: present
+      name: ansible-key
+      public_key_file: /home/vagrant/.ssh/id_rsa.pub
+    register: kp
+  - debug:
+      var: kp
+
+  #  creating security group to allow access to frontend servers
+  - name: Create a new security group
+    os_security_group:
+      state: present
+      name: sec_ingr
+  #  creating security group Rule for ICMP
+  - name: Create a new security group allowing any ICMP
+    os_security_group_rule:
+      security_group: sec_ingr
+      protocol: icmp
+      remote_ip_prefix: 0.0.0.0/0
+  #  creating security group Rule for SSH
+  - name: Create a new security group allowing any SSH connection
+    os_security_group_rule:
+      security_group: sec_ingr
+      protocol: tcp
+      port_range_min: 22
+      port_range_max: 22
+      remote_ip_prefix: 0.0.0.0/0
+  #  creating security group Rule for HTTP port 80
+  - name: Create a new security rule allowing normal web connection
+    os_security_group_rule:
+      security_group: sec_ingr
+      protocol: tcp
+      port_range_min: 80
+      port_range_max: 80
+      remote_ip_prefix: 0.0.0.0/0
+  #  creating security group Rule for secure HTTP port 443
+  - name: Create a new security rule allowing secure web connection
+    os_security_group_rule:
+      security_group: sec_ingr
+      protocol: tcp
+      port_range_min: 443
+      port_range_max: 443
+      remote_ip_prefix: 0.0.0.0/0
+
