@@ -29,13 +29,21 @@
 
 
 - hosts: db
+  gather_facts: True
   remote_user: ubuntu
   become: yes
   become_method: sudo
-  roles:
-    - {role: mysql, 
-      mysql_db: [{name: wordpress}], 
-      mysql_users: [{name: wp, pass: naodivulgar, priv: "*.*:ALL"}] }
+  roles: 
+    - mysql 
+  tasks:
+    - name: Create the database's
+      mysql_db: name=wordpress state=present
+
+    - name: Create the database users
+      mysql_user: name=wp  password=naodivulgar priv="*.*:ALL" state=present host="localhost"
+
+    - name: Grant remote access
+      command: mysql -u root --password='foobar' -e "GRANT ALL PRIVILEGES ON *.* TO 'wp'@'192.168.1.%' IDENTIFIED BY 'naodivulgar' WITH GRANT OPTION;"
 
 # This Second Play install the required software in web servers
 # tasks names are self explanatory
@@ -48,7 +56,8 @@
     - name: install apps
       apt: name={{ item }} update_cache=yes state=latest
       with_items:
-        - nginx
+      - nginx
+      - mysql-client
       register: conf
     # - debug:
     #     var: conf
