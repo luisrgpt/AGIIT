@@ -1,0 +1,111 @@
+---
+# file: agicloud-site-net-instances-all.yml
+# creates a demo tenant infrastructure (networks, host instances)
+# This is a single Play named "Create Tenant Infrastructure"
+# Please note that in tasks there were included "debug" options
+# to report the results of the tasks
+
+- name: Create Tenant Infrastructure
+  hosts: localhost
+
+  tasks:
+  # Try SSH to jump server
+  - name: Wait for SSH on the Instance
+    command: >
+      rm -f .ssh/known_hosts
+    register: result
+  # - debug:
+  #     var: result
+
+  #  create an instance (a server) connected to the frontend network.
+  - os_server:
+      state: absent
+      name: bastionbal
+      delete_fip: yes
+    register: bastionbal
+  # - debug:
+  #     var: bastionbal
+   
+
+  #  create an instance (a web server) connected to the backend network.
+  - os_server:
+      state: absent
+      name: web1
+    register: web1
+  # - debug:
+  #     var: web1   
+
+  #  create another instance (a web server) connected to the backend network.
+  - os_server:
+      state: absent
+      name: web2
+    register: web2
+  # - debug:
+  #     var: web2   
+
+  #  create an instance (a server) connected to the frontend network.
+  - os_server:
+      state: absent
+      name: db1
+    register: db1
+  # - debug:
+  #     var: bastionbal
+
+  #  Add bastionbal Ubuntu Instance to Inventory
+  - meta: refresh_inventory
+
+    #  creating security group to allow access to frontend servers
+  - name: Create a new security group
+    os_security_group:
+      state: absent
+      name: sec_ingr
+
+        # creating a key pair for passwordless remote ssh
+  - os_keypair:
+      state: absent
+      name: ansible-key
+    register: kp
+  # - debug:
+  #     var: kp
+
+    #  creating a router connecting the frontend to the external (public) network
+  - os_router:
+      state: absent
+      name: vrdmz
+    register: vr_ext
+  # - debug:
+  #     var: vr_ext
+
+    # defines the subnet (addressing) for the backend network including DNS 
+  - os_subnet:
+      state: absent
+      network_name: backend_network
+      name: backend_subnet
+    register: subnet_backend
+  # - debug:
+  #     var: subnet_backend
+
+    # creating the backend network (for web servers)  
+  - os_network:
+      state: absent
+      name: backend_network
+    register: net_backend
+  # - debug:
+  #     var: net_backend
+
+    # defines the subnet (addressing) for the frontend network including DNS 
+  - os_subnet:
+      state: absent
+      network_name: frontend_network
+      name: frontend_subnet
+    register: subnet_frontend
+  # - debug:
+  #     var: subnet_frontend
+
+  # creating the frontend network (dmz)  
+  - os_network:
+      state: absent
+      name: frontend_network
+    register: net_frontend
+  # - debug:
+  #     var: net_frontend
