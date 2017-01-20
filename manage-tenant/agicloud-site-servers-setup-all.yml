@@ -29,8 +29,13 @@
 
 
 - hosts: db
+  remote_user: ubuntu
+  become: yes
+  become_method: sudo
   roles:
-    - mysql 
+    - {role: mysql, 
+      mysql_db: [{name: wordpress}], 
+      mysql_users: [{name: wp, pass: naodivulgar, priv: "*.*:ALL"}] }
 
 # This Second Play install the required software in web servers
 # tasks names are self explanatory

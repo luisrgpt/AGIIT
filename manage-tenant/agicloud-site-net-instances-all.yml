@@ -67,8 +67,8 @@
       name: ansible-key
       public_key_file: /home/vagrant/.ssh/id_rsa.pub
     register: kp
-  # - debug:
-  #     var: kp
+  - debug:
+      var: kp
 
   #  creating security group to allow access to frontend servers
   - name: Create a new security group
